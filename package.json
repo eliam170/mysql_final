@@ -1,0 +1,25 @@
+{
+  "name": "biocold-control",
+  "version": "1.1.0",
+  "description": "Plataforma de Control de Vacunas - Cadena de Frío (Vite + Express + MySQL)",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"npm run server\" \"npm run client\"",
+    "client": "vite --open",
+    "server": "nodemon server.js",
+    "build": "vite build",
+    "db:init": "node db/init.js",
+    "postinstall": "pip install -r biocold_control/requirements.txt"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.4",
+    "vite": "^5.4.2"
+  }
+}

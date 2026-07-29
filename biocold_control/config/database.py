@@ -1,14 +1,18 @@
+import os
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class DatabaseConnection:
     """Clase singleton para gestionar la conexión a la base de datos MySQL."""
     
     def __init__(self):
-        self.host = "localhost"
-        self.user = "root"
-        self.password = "tu_contraseña"  # Cambiar por tus credenciales de MySQL
-        self.database = "vacunas_db"
+        self.host = os.getenv("DB_HOST", "localhost")
+        self.user = os.getenv("DB_USER", "root")
+        self.password = os.getenv("DB_PASSWORD", "tu_contraseña")
+        self.database = os.getenv("DB_NAME", "vacunas_db")
         self.connection = None
 
     def get_connection(self):

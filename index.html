@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Control de Vacunas | Cadena de Frío</title>
-    <!-- Iconos y Tipografía -->
+    <title>BioCold Control | Plataforma de Vacunas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar / Menú Navegación Lateral -->
         <aside class="sidebar">
             <div class="brand">
                 <i class="fa-solid fa-vial-circle-check brand-icon"></i>
                 <h2>BioCold<span>Control</span></h2>
             </div>
-            
             <nav class="nav-menu">
                 <ul>
-                    <li class="active"><a href="#dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-                    <li><a href="#laboratorios"><i class="fa-solid fa-flask"></i> Laboratorios (CU01)</a></li>
-                    <li><a href="#vacunas"><i class="fa-solid fa-syringe"></i> Catálogo Vacunas (CU02)</a></li>
-                    <li><a href="#lotes"><i class="fa-solid fa-boxes-stacked"></i> Lotes Producción (CU03)</a></li>
-                    <li><a href="#logistica"><i class="fa-solid fa-truck-fast"></i> Operadores (CU04/CU05)</a></li>
-                    <li><a href="#despachos"><i class="fa-solid fa-route"></i> Despachos y Rutas (CU06)</a></li>
-                    <li><a href="#telemetria"><i class="fa-solid fa-temperature-arrow-down"></i> Telemetría IoT (CU07)</a></li>
-                    <li><a href="#auditoria"><i class="fa-solid fa-clipboard-check"></i> Dictamen y Cert. (CU09)</a></li>
+                    <li class="active" data-tab="dashboard"><a href="#"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                    <li data-tab="laboratorios"><a href="#"><i class="fa-solid fa-flask"></i> Laboratorios (CU01)</a></li>
+                    <li data-tab="vacunas"><a href="#"><i class="fa-solid fa-syringe"></i> Catálogo Vacunas (CU02)</a></li>
+                    <li data-tab="lotes"><a href="#"><i class="fa-solid fa-boxes-stacked"></i> Lotes Producción (CU03)</a></li>
+                    <li data-tab="logistica"><a href="#"><i class="fa-solid fa-truck-fast"></i> Operadores (CU04/CU05)</a></li>
+                    <li data-tab="despachos"><a href="#"><i class="fa-solid fa-route"></i> Despachos y Rutas (CU06)</a></li>
+                    <li data-tab="telemetria"><a href="#"><i class="fa-solid fa-temperature-arrow-down"></i> Telemetría IoT (CU07)</a></li>
+                    <li data-tab="auditoria"><a href="#"><i class="fa-solid fa-clipboard-check"></i> Dictamen y Cert. (CU09)</a></li>
                 </ul>
             </nav>
-
             <div class="user-profile">
                 <i class="fa-solid fa-user-gear"></i>
                 <div class="user-info">
@@ -39,91 +38,201 @@
             </div>
         </aside>
 
-        <!-- Contenido Principal -->
         <main class="main-content">
-            <!-- Navbar Superior -->
             <header class="top-header">
                 <div class="header-title">
-                    <h1>Monitoreo y Trazabilidad de Vacunas</h1>
-                    <p>Fase de Diseño - Control de Cadena de Frío</p>
+                    <h1 id="headerTitle">Monitoreo y Trazabilidad de Vacunas</h1>
+                    <p id="headerSubtitle">Dashboard Principal</p>
                 </div>
                 <div class="header-actions">
-                    <!-- Búsqueda rápida por Lote (CU08) -->
-                    <div class="search-box">
+                    <div class="search-box" id="globalSearchBox">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="inputBuscarLote" placeholder="Buscar lote (ej. LOT-2026-X99)...">
                         <button class="btn btn-secondary" id="btnBuscarLote">Buscar (CU08)</button>
                     </div>
-                    <!-- Exportación de Datos (CU10 / RF04) -->
                     <button class="btn btn-accent" id="btnExportarJSON">
-                        <i class="fa-solid fa-file-export"></i> Exportar JSON (RF04)
+                        <i class="fa-solid fa-file-export"></i> Exportar JSON
                     </button>
                 </div>
             </header>
 
-            <!-- KPI Cards / Métricas Rápidas -->
-            <section class="kpi-container">
-                <div class="card kpi-card">
-                    <div class="kpi-icon blue"><i class="fa-solid fa-box-archive"></i></div>
-                    <div class="kpi-details">
-                        <h3>Lotes Activos</h3>
-                        <p class="kpi-value" id="kpiLotesActivos">--</p>
+            <!-- DASHBOARD -->
+            <section class="tab-content active" id="tab-dashboard">
+                <div class="kpi-container">
+                    <div class="card kpi-card">
+                        <div class="kpi-icon blue"><i class="fa-solid fa-box-archive"></i></div>
+                        <div class="kpi-details">
+                            <h3>Lotes Activos</h3>
+                            <p class="kpi-value" id="kpiLotesActivos">--</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon green"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                        <div class="kpi-details">
+                            <h3>En Tránsito</h3>
+                            <p class="kpi-value" id="kpiEnTransito">--</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-details">
+                            <h3>Alertas Térmicas</h3>
+                            <p class="kpi-value" id="kpiAlertas">0</p>
+                        </div>
                     </div>
                 </div>
-                <div class="card kpi-card">
-                    <div class="kpi-icon green"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                    <div class="kpi-details">
-                        <h3>En Tránsito</h3>
-                        <p class="kpi-value" id="kpiEnTransito">--</p>
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Listado Principal de Lotes de Vacunas</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('lotes')"><i class="fa-solid fa-plus"></i> Registrar Lote</button>
                     </div>
-                </div>
-                <div class="card kpi-card">
-                    <div class="kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div class="kpi-details">
-                        <h3>Alertas Térmicas</h3>
-                        <p class="kpi-value" id="kpiAlertas">0</p>
+                    <div id="filtroDashboard" class="filter-pills"></div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Código Lote</th><th>Vacuna</th><th>Laboratorio</th><th>Dosis</th><th>Temp. Ideal</th><th>Estado</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyLotes"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
 
-            <!-- Sección Dinámica: Tabla de Control / Formularios -->
-            <section class="content-body">
+            <!-- LABORATORIOS -->
+            <section class="tab-content" id="tab-laboratorios">
                 <div class="card table-card">
                     <div class="table-header">
-                        <h2>Listado Principal de Lotes de Vacunas</h2>
-                        <button class="btn btn-primary" id="btnNuevoRegistro">
-                            <i class="fa-solid fa-plus"></i> Registrar Nuevo Lote
-                        </button>
+                        <h2>Laboratorios Registrados (CU01)</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('laboratorios')"><i class="fa-solid fa-plus"></i> Nuevo Laboratorio</button>
                     </div>
-                    
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
-                                <tr>
-                                    <th>Código Lote</th>
-                                    <th>Vacuna</th>
-                                    <th>Laboratorio</th>
-                                    <th>Cant. Dosis</th>
-                                    <th>Temp. Ideal (°C)</th>
-                                    <th>Estado Rótulo</th>
-                                    <th>Acciones</th>
-                                </tr>
+                                <tr><th>ID</th><th>Nombre</th><th>Licencia</th><th>País</th><th>Teléfono</th><th>Email</th><th>Registro</th><th>Acciones</th></tr>
                             </thead>
-                            <tbody id="tablaBodyLotes">
-                                <!-- Filas de prueba frontend (se reemplazarán dinámicamente con Python + MySQL) -->
-                                <tr>
-                                    <td><strong>LOT-2026-X01</strong></td>
-                                    <td>Pfizer BioNTech</td>
-                                    <td>Laboratorio Central</td>
-                                    <td>50,000</td>
-                                    <td>-80°C a -60°C</td>
-                                    <td><span class="badge badge-success">Óptimo</span></td>
-                                    <td>
-                                        <button class="btn-icon" title="Ver Historial"><i class="fa-solid fa-eye"></i></button>
-                                        <button class="btn-icon danger" title="Alertas"><i class="fa-solid fa-temperature-high"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="tablaBodyLaboratorios"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VACUNAS -->
+            <section class="tab-content" id="tab-vacunas">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Catálogo de Vacunas (CU02)</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('vacunas')"><i class="fa-solid fa-plus"></i> Nueva Vacuna</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Nombre Comercial</th><th>Tecnología</th><th>Temp. Mín</th><th>Temp. Máx</th><th>Dosis</th><th>Laboratorio</th><th>País</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyVacunas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOTES -->
+            <section class="tab-content" id="tab-lotes">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Lotes de Producción (CU03)</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('lotes')"><i class="fa-solid fa-plus"></i> Registrar Lote</button>
+                    </div>
+                    <div id="filtroLotes" class="filter-pills"></div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Código</th><th>Vacuna</th><th>Laboratorio</th><th>Dosis</th><th>F. Fabricación</th><th>F. Vencimiento</th><th>Estado</th><th>Creador</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyLotesFull"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOGISTICA -->
+            <section class="tab-content" id="tab-logistica">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Operadores Logísticos (CU04)</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('operadores')"><i class="fa-solid fa-plus"></i> Nuevo Operador</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Razón Social</th><th>NIT</th><th>Tipo Transporte</th><th>Teléfono</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyOperadores"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card table-card" style="margin-top:1.5rem">
+                    <div class="table-header">
+                        <h2>Vehículos Asignados (CU05)</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Placa</th><th>Tipo</th><th>Capacidad</th><th>Operador</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyVehiculos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DESPACHOS -->
+            <section class="tab-content" id="tab-despachos">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Despachos y Rutas (CU06)</h2>
+                        <button class="btn btn-primary" onclick="abrirModalCrear('despachos')"><i class="fa-solid fa-plus"></i> Nuevo Despacho</button>
+                    </div>
+                    <div id="filtroDespachos" class="filter-pills"></div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Lote</th><th>Vacuna</th><th>Origen</th><th>Destino</th><th>Salida</th><th>Llegada Est.</th><th>Estado</th><th>Vehículo</th><th>Operador</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyDespachos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TELEMETRIA -->
+            <section class="tab-content" id="tab-telemetria">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Lecturas de Telemetría IoT (CU07)</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Lote</th><th>Sensor (MAC)</th><th>Temp.</th><th>Humedad</th><th>Fecha/Hora</th><th>Alerta</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyTelemetria"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AUDITORIA -->
+            <section class="tab-content" id="tab-auditoria">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Dictámenes y Certificaciones (CU09)</h2>
+                    </div>
+                    <div id="filtroAuditoria" class="filter-pills"></div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Lote</th><th>Vacuna</th><th>Veredicto</th><th>Observaciones</th><th>Fecha</th><th>Auditor</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaBodyDictamenes"></tbody>
                         </table>
                     </div>
                 </div>
@@ -131,36 +240,27 @@
         </main>
     </div>
 
-    <!-- Modal de Formulario Estándar (Reutilizable) -->
-    <div class="modal-overlay" id="modalFormulario">
+    <!-- MODAL DINAMICO (Crear / Editar) -->
+    <div class="modal-overlay" id="modalDinamico">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitulo">Registrar Nuevo Lote</h3>
-                <button class="btn-close" id="btnCerrarModal">&times;</button>
+                <h3 id="modalDinamicoTitulo">Título</h3>
+                <button class="btn-close" id="btnCerrarModalDinamico">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formGenerico">
-                    <div class="form-group">
-                        <label for="codigoLote">Código de Lote Alfanumérico</label>
-                        <input type="text" id="codigoLote" placeholder="Ej: LOT-2026-ABC" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="selectVacuna">Vacuna Asociada</label>
-                        <select id="selectVacuna" required>
-                            <option value="">Cargando opciones de MySQL...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="cantidadDosis">Cantidad de Dosis</label>
-                        <input type="number" id="cantidadDosis" placeholder="10000" required>
-                    </div>
+                <form id="formDinamico">
+                    <div id="modalDinamicoCampos"></div>
+                    <input type="hidden" id="modalDinamicoRecurso">
+                    <input type="hidden" id="modalDinamicoId">
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="btnCancelarForm">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar Datos</button>
+                        <button type="button" class="btn btn-secondary" id="btnCancelarModalDinamico">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarModalDinamico">Guardar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script type="module" src="/main.js"></script>
 </body>
 </html>

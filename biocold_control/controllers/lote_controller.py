@@ -1,49 +1,25 @@
-from config.database import DatabaseConnection
-from mysql.connector import Error
+from models.lote import LoteModel
 
-class LoteModel:
-    """Gestiona las consultas y escrituras directas sobre la tabla 'lotes'."""
+class LoteController:
+    """Controlador con la lógica de negocio para la gestión de lotes."""
 
     def __init__(self):
-        self.db = DatabaseConnection()
+        self.model = LoteModel()
 
-    def registrar_lote(self, codigo_lote, id_vacuna, cantidad_dosis, fecha_fab, fecha_venc):
-        """Inserta un nuevo lote con estado inicial 'Pendiente' (CU03)."""
-        conn = self.db.get_connection()
-        if not conn:
-            return False
+    def crear_nuevo_lote(self, codigo_lote, id_vacuna, cantidad_dosis, fecha_fab, fecha_venc):
+        """Valida y delega el registro de un nuevo lote (CU03)."""
+        if not codigo_lote or cantidad_dosis <= 0:
+            return {"exito": False, "mensaje": "Datos inválidos. Verifique el código y la cantidad."}
 
-        query = """
-            INSERT INTO lotes (codigo_lote, id_vacuna, cantidad_dosis, fecha_fabricacion, fecha_vencimiento, estado)
-            VALUES (%s, %s, %s, %s, %s, 'Pendiente')
-        """
-        try:
-            cursor = conn.cursor()
-            cursor.execute(query, (codigo_lote, id_vacuna, cantidad_dosis, fecha_fab, fecha_venc))
-            conn.commit()
-            cursor.close()
-            return True
-        except Error as e:
-            print(f"[ERROR MODEL] Fallo al insertar lote: {e}")
-            return False
+        exito = self.model.registrar_lote(codigo_lote, id_vacuna, cantidad_dosis, fecha_fab, fecha_venc)
+        if exito:
+            return {"exito": True, "mensaje": f"Lote {codigo_lote} registrado correctamente."}
+        else:
+            return {"exito": False, "mensaje": "Error al registrar el lote en la base de datos."}
 
-    def obtener_todos(self):
-        """Recupera la lista completa de lotes registrados."""
-        conn = self.db.get_connection()
-        if not conn:
-            return []
-
-        query = """
-            SELECT l.id_lote, l.codigo_lote, v.nombre_comercial, l.cantidad_dosis, l.estado
-            FROM lotes l
-            INNER JOIN vacunas v ON l.id_vacuna = v.id_vacuna
-        """
-        try:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute(query)
-            resultados = cursor.fetchall()
-            cursor.close()
-            return resultados
-        except Error as e:
-            print(f"[ERROR MODEL] Fallo al consultar lotes: {e}")
-            return []
+    def evaluar_telemetria_sensor(self, codigo_lote, temperatura, min_temp, max_temp):
+        """Evalúa si la lectura de temperatura está dentro del rango seguro (CU07)."""
+        if min_temp <= temperatura <= max_temp:
+            return {"exito": True, "mensaje": f"✅ Temperatura {temperatura}°C DENTRO del rango seguro [{min_temp}°C a {max_temp}°C]."}
+        else:
+            return {"exito": False, "mensaje": f"❌ ALERTA: Temperatura {temperatura}°C FUERA del rango seguro [{min_temp}°C a {max_temp}°C]."}
