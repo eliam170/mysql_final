@@ -820,7 +820,8 @@ app.get('/api/repuestos/:id', async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Repuesto no encontrado' });
 
     const [modelos] = await ejecutar(`
-      SELECT mo.id_modelo, mo.id_marca_vehiculo, mo.nombre AS modelo, mo.cilindraje, ma.nombre AS marca
+      SELECT mo.id_modelo, mo.id_marca_vehiculo, mo.nombre AS modelo, mo.cilindraje,
+             mo.anio_inicio, mo.anio_fin, ma.nombre AS marca
       FROM repuesto_compatibilidad rc
       JOIN modelos_vehiculo mo ON rc.id_modelo = mo.id_modelo
       JOIN marcas_vehiculo ma ON mo.id_marca_vehiculo = ma.id_marca_vehiculo

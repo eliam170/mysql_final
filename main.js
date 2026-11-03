@@ -516,22 +516,107 @@ function renderCatalogo(items, append = false) {
 }
 
 /* ===================== DETALLE ===================== */
+function agruparCompatibilidad(modelos) {
+  const arbol = new Map();
+  (modelos || []).forEach((m) => {
+    const marca = String(m.marca || 'Sin marca').trim();
+    const modelo = String(m.modelo || 'Sin modelo').trim();
+    if (!arbol.has(marca)) arbol.set(marca, new Map());
+    const porModelo = arbol.get(marca);
+    if (!porModelo.has(modelo)) porModelo.set(modelo, { modelo, versiones: [], vistos: new Set() });
+    const entrada = porModelo.get(modelo);
+    const cil = m.cilindraje != null ? `${Number(m.cilindraje).toFixed(1)}L` : '';
+    const rango = m.anio_inicio && m.anio_fin ? `${m.anio_inicio} - ${m.anio_fin}` : '';
+    const clave = `${cil}|${rango}`;
+    if (entrada.vistos.has(clave)) return;
+    entrada.vistos.add(clave);
+    entrada.versiones.push({ cil, rango });
+  });
+
+  return [...arbol.entries()].map(([marca, porModelo]) => {
+    const modelosMarca = [...porModelo.values()].map(({ modelo, versiones }) => ({
+      modelo,
+      versiones,
+      busqueda: [modelo, ...versiones.map((v) => `${v.cil} ${v.rango}`)].join(' '),
+    }));
+    return {
+      marca,
+      modelos: modelosMarca,
+      versiones: modelosMarca.reduce((total, m) => total + m.versiones.length, 0),
+    };
+  });
+}
+
+function compatibilidadHtml(modelos) {
+  const grupos = agruparCompatibilidad(modelos);
+  if (!grupos.length) {
+    return `<div class="compat-vacio"><i class="fa-solid fa-car-burst"></i><p>Sin modelos registrados para este repuesto.</p></div>`;
+  }
+  const totalModelos = grupos.reduce((total, g) => total + g.modelos.length, 0);
+  const totalVersiones = grupos.reduce((total, g) => total + g.versiones, 0);
+
+  const tarjetas = grupos.map((g) => `
+    <article class="compat-brand" data-marca="${escapeHtml(g.marca)}">
+      <header class="compat-brand-head">
+        <span class="compat-brand-icon"><i class="fa-solid fa-car"></i></span>
+        <strong>${escapeHtml(g.marca)}</strong>
+        <span class="compat-brand-count">${g.modelos.length} modelo${g.modelos.length === 1 ? '' : 's'}</span>
+      </header>
+      <ul class="compat-modelos">
+        ${g.modelos.map((m) => `
+          <li class="compat-modelo" data-busqueda="${escapeHtml(m.busqueda)}">
+            <span class="compat-modelo-nombre">${escapeHtml(m.modelo)}</span>
+            <div class="compat-versiones">
+              ${m.versiones.map((v) => `
+                <span class="compat-version">
+                  ${v.cil ? `<span class="compat-version-cil"><i class="fa-solid fa-gauge-high"></i>${escapeHtml(v.cil)}</span>` : ''}
+                  <span class="compat-version-anio"><i class="fa-regular fa-calendar"></i>${escapeHtml(v.rango || 'Año no registrado')}</span>
+                </span>`).join('')}
+            </div>
+          </li>`).join('')}
+      </ul>
+    </article>`).join('');
+
+  return `
+    <div class="compat-toolbar">
+      <h5>Compatible con</h5>
+      <span class="compat-total">${totalModelos} modelo${totalModelos === 1 ? '' : 's'} · ${totalVersiones} versión${totalVersiones === 1 ? '' : 'es'}</span>
+    </div>
+    <div class="compat-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="search" id="detalleCompatBuscar" placeholder="Filtrar por marca, modelo, cilindraje o año..." autocomplete="off">
+    </div>
+    <div class="compat-grupos" id="detalleCompatLista">${tarjetas}</div>
+    <p class="compat-sin-resultados oculto" id="detalleCompatVacio"><i class="fa-solid fa-magnifying-glass"></i> No hay coincidencias con ese filtro.</p>`;
+}
+
+function activarFiltroCompat() {
+  const input = document.getElementById('detalleCompatBuscar');
+  const lista = document.getElementById('detalleCompatLista');
+  const vacio = document.getElementById('detalleCompatVacio');
+  if (!input || !lista) return;
+  input.addEventListener('input', () => {
+    const texto = normalizarTexto(input.value);
+    let visibles = 0;
+    lista.querySelectorAll('.compat-brand').forEach((tarjeta) => {
+      const marca = normalizarTexto(tarjeta.dataset.marca);
+      let modelosVisibles = 0;
+      tarjeta.querySelectorAll('.compat-modelo').forEach((fila) => {
+        const coincide = !texto || marca.includes(texto) || normalizarTexto(fila.dataset.busqueda).includes(texto);
+        fila.classList.toggle('oculto', !coincide);
+        if (coincide) modelosVisibles += 1;
+      });
+      tarjeta.classList.toggle('oculto', modelosVisibles === 0);
+      if (modelosVisibles) visibles += 1;
+    });
+    if (vacio) vacio.classList.toggle('oculto', visibles > 0);
+  });
+}
+
 async function verDetalle(id) {
   try {
     const r = await getJSON(`${API}/repuestos/${id}`);
     document.getElementById('detalleTitulo').textContent = r.nombre;
-
-    const grupos = {};
-    r.modelos.forEach((m) => {
-      (grupos[m.marca] = grupos[m.marca] || []).push(`${m.modelo} ${m.cilindraje}L`);
-    });
-    const compatHtml = Object.keys(grupos).length
-      ? Object.entries(grupos).map(([marca, modelos]) => `
-          <div class="compat-group">
-            <strong><i class="fa-solid fa-car"></i> ${escapeHtml(marca)}</strong>
-            <div class="compat-tags">${modelos.map((m) => `<span class="compat-tag">${escapeHtml(m)}</span>`).join('')}</div>
-          </div>`).join('')
-      : '<p style="color:var(--text-muted)">Sin modelos registrados.</p>';
 
     document.getElementById('detalleBody').innerHTML = `
       <div class="detalle-top">
@@ -551,9 +636,8 @@ async function verDetalle(id) {
         <div><span>Marca del repuesto</span><strong>${escapeHtml(r.marca_repuesto)}</strong></div>
       </div>
       <p style="color:var(--text-muted);font-size:0.88rem">${escapeHtml(r.descripcion || 'Sin descripción.')}</p>
-      <div class="detalle-compat" style="margin-top:1.3rem">
-        <h5>Compatible con</h5>
-        ${compatHtml}
+      <div class="detalle-compat">
+        ${compatibilidadHtml(r.modelos)}
       </div>
       <div class="form-actions">
         <button class="btn btn-primary btn-block" data-add="${r.id_repuesto}" ${r.stock <= 0 ? 'disabled' : ''}>
@@ -562,6 +646,7 @@ async function verDetalle(id) {
       </div>`;
 
     abrirModal('modalDetalle');
+    activarFiltroCompat();
   } catch (e) {
     toast('No se pudo cargar el detalle');
   }
