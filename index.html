@@ -3,263 +3,640 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioCold Control | Plataforma de Vacunas</title>
+    <title>TODO REPUESTOS Y FRENOS LA 61 | Repuestos para tu vehículo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="brand">
-                <i class="fa-solid fa-vial-circle-check brand-icon"></i>
-                <h2>BioCold<span>Control</span></h2>
+    <!-- ===================== NAVBAR ===================== -->
+    <header class="navbar">
+        <div class="nav-brand" data-vista="catalogo">
+            <img src="/img/logo.jpg" alt="TODO REPUESTOS Y FRENOS LA 61" class="brand-logo">
+        </div>
+
+        <div class="nav-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="buscadorGlobal" placeholder="Buscar repuesto, marca o modelo...">
+            <button id="btnBuscarGlobal" aria-label="Buscar"><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <nav class="nav-links">
+            <button class="nav-link active" data-vista="catalogo"><i class="fa-solid fa-store"></i><span>Catálogo</span></button>
+            <button class="nav-link" data-vista="nosotros"><i class="fa-solid fa-users"></i><span>Sobre nosotros</span></button>
+            <button class="nav-link" data-vista="admin"><i class="fa-solid fa-sliders"></i><span>Gestión</span></button>
+        </nav>
+
+        <button class="cart-btn" id="btnCarrito" aria-label="Carrito">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span id="carritoCount" class="cart-count">0</span>
+        </button>
+    </header>
+
+    <!-- ===================== WHATSAPP / ASESORES (arriba derecha) ===================== -->
+    <div class="wa-widget">
+        <button class="wa-button" id="btnWhatsapp" aria-label="Contactar a un asesor">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>Asesor</span>
+        </button>
+        <div class="wa-panel oculto" id="waPanel">
+            <div class="wa-panel-head">
+                <div>
+                    <strong>Contacta a un asesor</strong>
+                    <span>Elige quién te atiende por WhatsApp</span>
+                </div>
+                <button class="btn-close" id="btnCerrarWa">&times;</button>
             </div>
-            <nav class="nav-menu">
-                <ul>
-                    <li class="active" data-tab="dashboard"><a href="#"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-                    <li data-tab="laboratorios"><a href="#"><i class="fa-solid fa-flask"></i> Laboratorios (CU01)</a></li>
-                    <li data-tab="vacunas"><a href="#"><i class="fa-solid fa-syringe"></i> Catálogo Vacunas (CU02)</a></li>
-                    <li data-tab="lotes"><a href="#"><i class="fa-solid fa-boxes-stacked"></i> Lotes Producción (CU03)</a></li>
-                    <li data-tab="logistica"><a href="#"><i class="fa-solid fa-truck-fast"></i> Operadores (CU04/CU05)</a></li>
-                    <li data-tab="despachos"><a href="#"><i class="fa-solid fa-route"></i> Despachos y Rutas (CU06)</a></li>
-                    <li data-tab="telemetria"><a href="#"><i class="fa-solid fa-temperature-arrow-down"></i> Telemetría IoT (CU07)</a></li>
-                    <li data-tab="auditoria"><a href="#"><i class="fa-solid fa-clipboard-check"></i> Dictamen y Cert. (CU09)</a></li>
-                </ul>
-            </nav>
-            <div class="user-profile">
-                <i class="fa-solid fa-user-gear"></i>
-                <div class="user-info">
-                    <p class="user-name">Usuario Sistema</p>
-                    <span class="user-role">Administrador / Auditor</span>
-                </div>
+            <div class="wa-buscador">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="waBuscar" placeholder="Buscar asesor...">
             </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-title">
-                    <h1 id="headerTitle">Monitoreo y Trazabilidad de Vacunas</h1>
-                    <p id="headerSubtitle">Dashboard Principal</p>
-                </div>
-                <div class="header-actions">
-                    <div class="search-box" id="globalSearchBox">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="inputBuscarLote" placeholder="Buscar lote (ej. LOT-2026-X99)...">
-                        <button class="btn btn-secondary" id="btnBuscarLote">Buscar (CU08)</button>
-                    </div>
-                    <button class="btn btn-accent" id="btnExportarJSON">
-                        <i class="fa-solid fa-file-export"></i> Exportar JSON
-                    </button>
-                </div>
-            </header>
-
-            <!-- DASHBOARD -->
-            <section class="tab-content active" id="tab-dashboard">
-                <div class="kpi-container">
-                    <div class="card kpi-card">
-                        <div class="kpi-icon blue"><i class="fa-solid fa-box-archive"></i></div>
-                        <div class="kpi-details">
-                            <h3>Lotes Activos</h3>
-                            <p class="kpi-value" id="kpiLotesActivos">--</p>
-                        </div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-icon green"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                        <div class="kpi-details">
-                            <h3>En Tránsito</h3>
-                            <p class="kpi-value" id="kpiEnTransito">--</p>
-                        </div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <div class="kpi-details">
-                            <h3>Alertas Térmicas</h3>
-                            <p class="kpi-value" id="kpiAlertas">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Listado Principal de Lotes de Vacunas</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('lotes')"><i class="fa-solid fa-plus"></i> Registrar Lote</button>
-                    </div>
-                    <div id="filtroDashboard" class="filter-pills"></div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>Código Lote</th><th>Vacuna</th><th>Laboratorio</th><th>Dosis</th><th>Temp. Ideal</th><th>Estado</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyLotes"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- LABORATORIOS -->
-            <section class="tab-content" id="tab-laboratorios">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Laboratorios Registrados (CU01)</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('laboratorios')"><i class="fa-solid fa-plus"></i> Nuevo Laboratorio</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Nombre</th><th>Licencia</th><th>País</th><th>Teléfono</th><th>Email</th><th>Registro</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyLaboratorios"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VACUNAS -->
-            <section class="tab-content" id="tab-vacunas">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Catálogo de Vacunas (CU02)</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('vacunas')"><i class="fa-solid fa-plus"></i> Nueva Vacuna</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Nombre Comercial</th><th>Tecnología</th><th>Temp. Mín</th><th>Temp. Máx</th><th>Dosis</th><th>Laboratorio</th><th>País</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyVacunas"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- LOTES -->
-            <section class="tab-content" id="tab-lotes">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Lotes de Producción (CU03)</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('lotes')"><i class="fa-solid fa-plus"></i> Registrar Lote</button>
-                    </div>
-                    <div id="filtroLotes" class="filter-pills"></div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>Código</th><th>Vacuna</th><th>Laboratorio</th><th>Dosis</th><th>F. Fabricación</th><th>F. Vencimiento</th><th>Estado</th><th>Creador</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyLotesFull"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- LOGISTICA -->
-            <section class="tab-content" id="tab-logistica">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Operadores Logísticos (CU04)</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('operadores')"><i class="fa-solid fa-plus"></i> Nuevo Operador</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Razón Social</th><th>NIT</th><th>Tipo Transporte</th><th>Teléfono</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyOperadores"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card table-card" style="margin-top:1.5rem">
-                    <div class="table-header">
-                        <h2>Vehículos Asignados (CU05)</h2>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Placa</th><th>Tipo</th><th>Capacidad</th><th>Operador</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyVehiculos"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- DESPACHOS -->
-            <section class="tab-content" id="tab-despachos">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Despachos y Rutas (CU06)</h2>
-                        <button class="btn btn-primary" onclick="abrirModalCrear('despachos')"><i class="fa-solid fa-plus"></i> Nuevo Despacho</button>
-                    </div>
-                    <div id="filtroDespachos" class="filter-pills"></div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Lote</th><th>Vacuna</th><th>Origen</th><th>Destino</th><th>Salida</th><th>Llegada Est.</th><th>Estado</th><th>Vehículo</th><th>Operador</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyDespachos"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TELEMETRIA -->
-            <section class="tab-content" id="tab-telemetria">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Lecturas de Telemetría IoT (CU07)</h2>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Lote</th><th>Sensor (MAC)</th><th>Temp.</th><th>Humedad</th><th>Fecha/Hora</th><th>Alerta</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyTelemetria"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- AUDITORIA -->
-            <section class="tab-content" id="tab-auditoria">
-                <div class="card table-card">
-                    <div class="table-header">
-                        <h2>Dictámenes y Certificaciones (CU09)</h2>
-                    </div>
-                    <div id="filtroAuditoria" class="filter-pills"></div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr><th>ID</th><th>Lote</th><th>Vacuna</th><th>Veredicto</th><th>Observaciones</th><th>Fecha</th><th>Auditor</th><th>Acciones</th></tr>
-                            </thead>
-                            <tbody id="tablaBodyDictamenes"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </main>
+            <div class="wa-lista" id="waLista"></div>
+        </div>
     </div>
 
-    <!-- MODAL DINAMICO (Crear / Editar) -->
-    <div class="modal-overlay" id="modalDinamico">
+    <!-- ===================== BARRA DE DESPLAZAMIENTO PERSONALIZADA ===================== -->
+    <div class="scroll-rail" id="scrollRail" aria-label="Barra de desplazamiento">
+        <button type="button" class="scroll-step" id="scrollPasoArriba" title="Subir" aria-label="Subir"><i class="fa-solid fa-chevron-up"></i></button>
+        <div class="scroll-track" id="scrollTrack" role="scrollbar" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+            <div class="scroll-thumb" id="scrollThumb"></div>
+        </div>
+        <button type="button" class="scroll-step" id="scrollPasoAbajo" title="Bajar" aria-label="Bajar"><i class="fa-solid fa-chevron-down"></i></button>
+    </div>
+
+    <button type="button" class="ir-arriba" id="btnIrArriba" title="Volver al inicio" aria-label="Volver al inicio">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <div id="estadoConexion" class="estado-conexion oculto">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span id="estadoConexionTexto">Conectando con el servidor...</span>
+        <button id="btnReintentar" class="btn-reintentar oculto"><i class="fa-solid fa-rotate-right"></i> Reintentar</button>
+    </div>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <span class="hero-tag"><i class="fa-solid fa-bolt"></i> Repuestos originales y de marca</span>
+            <h2>Frenos, filtros y todo para tu carro</h2>
+            <p>Encuentra el repuesto exacto filtrando por marca, modelo, cilindraje, año y nombre. Calidad garantizada al mejor precio.</p>
+            <div class="hero-stats">
+                <div><strong id="heroRepuestos">--</strong><span>Repuestos</span></div>
+                <div><strong id="heroMarcas">--</strong><span>Marcas de vehículo</span></div>
+                <div><strong id="heroModelos">--</strong><span>Modelos compatibles</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== MARCAS ===================== -->
+    <div class="marcas-strip" id="marcasStrip" role="group" aria-label="Filtrar repuestos por marca de vehículo">
+        <button type="button" class="marca-chip" data-marca="Chevrolet" title="Ver repuestos Chevrolet"><img src="/img/marcas/chevrolet.svg" alt="Chevrolet" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Renault" title="Ver repuestos Renault"><img src="/img/marcas/renault.svg" alt="Renault" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Kia" title="Ver repuestos Kia"><img src="/img/marcas/kia.svg" alt="Kia" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Hyundai" title="Ver repuestos Hyundai"><img src="/img/marcas/hyundai.svg" alt="Hyundai" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Mazda" title="Ver repuestos Mazda"><img src="/img/marcas/mazda.svg" alt="Mazda" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Nissan" title="Ver repuestos Nissan"><img src="/img/marcas/nissan.svg" alt="Nissan" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Suzuki" title="Ver repuestos Suzuki"><img src="/img/marcas/suzuki.svg" alt="Suzuki" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Volkswagen" title="Ver repuestos Volkswagen"><img src="/img/marcas/volkswagen.svg" alt="Volkswagen" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Ford" title="Ver repuestos Ford"><img src="/img/marcas/ford.svg" alt="Ford" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Toyota" title="Ver repuestos Toyota"><img src="/img/marcas/toyota.svg" alt="Toyota" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Fiat" title="Ver repuestos Fiat"><img src="/img/marcas/fiat.svg" alt="Fiat" loading="lazy"></button>
+        <button type="button" class="marca-chip" data-marca="Mitsubishi" title="Ver repuestos Mitsubishi"><img src="/img/marcas/mitsubishi.svg" alt="Mitsubishi" loading="lazy"></button>
+    </div>
+
+    <!-- ===================== CATALOGO ===================== -->
+    <main class="container">
+        <section id="vista-catalogo" class="vista">
+            <aside class="categorias-block card">
+                <div class="filtros-head">
+                    <h3><i class="fa-solid fa-list"></i> Filtrar por categorías</h3>
+                </div>
+                <ul id="listaCategorias" class="lista-categorias">
+                    <li class="cat-item activo" data-cat="">Todas las categorías</li>
+                </ul>
+            </aside>
+
+            <aside class="filtros card">
+                <div class="filtros-head">
+                    <h3><i class="fa-solid fa-filter"></i> Filtrar repuestos</h3>
+                    <button id="btnLimpiarFiltros" class="btn-link">Limpiar</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Marca del vehículo</label>
+                    <select id="filtroMarca"><option value="">Todas las marcas</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <select id="filtroModelo"><option value="">Todos los modelos</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Cilindraje</label>
+                    <select id="filtroCilindraje"><option value="">Todos los cilindrajes</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Año del vehículo</label>
+                    <select id="filtroAnio"><option value="">Todos los años</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Nombre, marca o modelo</label>
+                    <input type="text" id="filtroNombre">
+                    <small class="form-hint">Escribe todo junto y tolera errores: </small>
+                </div>
+                <div class="form-group">
+                    <label>Marca del repuesto</label>
+                    <select id="filtroMarcaRepuesto"><option value="">Todas las marcas</option></select>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="filtroStock">
+                    <span class="slider"></span>
+                    Solo disponibles
+                </label>
+                <button class="btn btn-primary btn-block" id="btnAplicarFiltros"><i class="fa-solid fa-magnifying-glass"></i> Buscar repuestos</button>
+            </aside>
+
+            <div class="resultados">
+                <div class="resultados-head">
+                    <p id="contadorResultados">Cargando repuestos...</p>
+                    <select id="ordenSelect" class="orden-select">
+                        <option value="">Ordenar por defecto</option>
+                        <option value="precio_asc">Precio: menor a mayor</option>
+                        <option value="precio_desc">Precio: mayor a menor</option>
+                        <option value="nombre_asc">Nombre: A - Z</option>
+                    </select>
+                </div>
+                <div id="gridRepuestos" class="grid-repuestos"></div>
+                <div id="cargarMasWrap" class="cargar-mas-wrap oculto">
+                    <button type="button" id="btnMostrarMas" class="btn btn-secondary">
+                        <i class="fa-solid fa-chevron-down"></i> Mostrar más repuestos
+                    </button>
+                </div>
+                <div id="sinResultados" class="sin-resultados oculto">
+                    <i class="fa-solid fa-box-open"></i>
+                    <h3>No encontramos repuestos</h3>
+                    <p>Prueba con otros filtros o revisa la ortografía del nombre.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== SOBRE NOSOTROS ===================== -->
+        <section id="vista-nosotros" class="vista oculto">
+            <div class="nosotros-hero">
+                <span class="hero-tag"><i class="fa-solid fa-users"></i> Sobre nosotros</span>
+                <h2>Todo Repuestos y Frenos La 61</h2>
+                <p>Más de 30 años brindando repuestos de calidad para vehículos livianos y semipesados en Bucaramanga y toda la región.</p>
+            </div>
+
+            <div class="nosotros-grid">
+                <article class="card nosotros-card">
+                    <div class="nosotros-icon"><i class="fa-solid fa-people-roof"></i></div>
+                    <h3>¿Quiénes somos?</h3>
+                    <p>Somos una empresa familiar dedicada a la comercialización de repuestos para automóviles de marcas como: Renault, Chevrolet, Hyundai, Kia, Mazda, Toyota, Ford, Nissan, Daewoo y Volkswagen entre otras, con más de 30 años de experiencia brindando un servicio eficiente y de calidad a nuestros clientes.</p>
+                    <p>Contamos con instalaciones en la ciudad de Bucaramanga, las cuales están adecuadas para la atención con todos los protocolos de bioseguridad necesarios para la protección de nuestros colaboradores, clientes y proveedores. Tenemos un portafolio de más de 15.000 referencias y somos líderes del mercado de autopartes para vehículos livianos y semipesados.</p>
+                    <div class="nosotros-stats">
+                        <div><strong>+30</strong><span>Años de experiencia</span></div>
+                        <div><strong>+15.000</strong><span>Referencias</span></div>
+                        <div><strong>10+</strong><span>Marcas atendidas</span></div>
+                    </div>
+                </article>
+
+                <article class="card nosotros-card">
+                    <div class="nosotros-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <h3>Misión</h3>
+                    <p>Somos una empresa dedicada a la compra y venta de autopartes, para atender las necesidades del mercado automotriz. Nos distinguimos por nuestro excelente servicio de venta y post venta, dedicando todos nuestros esfuerzos con atención profesional para la continua satisfacción de nuestros clientes a través del mejor equipo humano.</p>
+                    <p>Comercializamos repuestos originales y alternativos de calidad, garantizados a precios competitivos. Manejamos un stock de productos de varias marcas a fin de solucionar las necesidades en repuestos de forma inmediata al cliente.</p>
+                </article>
+
+                <article class="card nosotros-card">
+                    <div class="nosotros-icon"><i class="fa-solid fa-eye"></i></div>
+                    <h3>Visión</h3>
+                    <p>Seremos una empresa líder en la comercialización de repuestos y autopartes de las mejores marcas del mercado a nivel regional y nacional.</p>
+                    <p>Nos ganaremos la confianza de nuestros clientes garantizándoles un servicio de excelente calidad buscando la satisfacción de sus necesidades.</p>
+                    <p>Tendremos una organización sólida y estable, para tranquilidad de nuestros clientes, colaboradores y proveedores, brindando un lugar extraordinario de trabajo.</p>
+                </article>
+
+                <article class="card nosotros-card nosotros-contacto">
+                    <div class="nosotros-icon"><i class="fa-solid fa-headset"></i></div>
+                    <h3>¿Necesita asistencia con su pedido?</h3>
+                    <p>Nuestro equipo de ventas está listo para atenderle.</p>
+                    <div class="nosotros-datos">
+                        <a href="https://wa.me/573156772672" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> +57 315 6772672</a>
+                        <span><i class="fa-solid fa-location-dot"></i> Calle 61 17E O2, esquina — Barrio La Ceiba<br>Bucaramanga - Colombia</span>
+                        <div class="nosotros-redes">
+                            <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===================== ADMIN ===================== -->
+        <section id="vista-admin" class="vista oculto">
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-admin-tab="repuestos"><i class="fa-solid fa-screwdriver-wrench"></i> Repuestos</button>
+                <button class="admin-tab" data-admin-tab="asesores"><i class="fa-brands fa-whatsapp"></i> Asesores</button>
+                <button class="admin-tab" data-admin-tab="categorias"><i class="fa-solid fa-tags"></i> Categorías</button>
+            </div>
+
+            <div id="admin-panel-repuestos">
+            <div class="kpi-container">
+                <div class="card kpi-card">
+                    <div class="kpi-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    <div><h4>Repuestos</h4><p class="kpi-value" id="kpiRepuestos">--</p></div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-icon"><i class="fa-solid fa-car"></i></div>
+                    <div><h4>Marcas de vehículo</h4><p class="kpi-value" id="kpiMarcas">--</p></div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-icon"><i class="fa-solid fa-list"></i></div>
+                    <div><h4>Modelos</h4><p class="kpi-value" id="kpiModelos">--</p></div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-icon danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div><h4>Agotados</h4><p class="kpi-value" id="kpiAgotados">--</p></div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-icon money"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div><h4>Valor inventario</h4><p class="kpi-value small" id="kpiInventario">--</p></div>
+                </div>
+            </div>
+
+            <div class="card table-card">
+                <div class="table-header">
+                    <h2>Gestión de repuestos</h2>
+                    <div class="table-actions">
+                        <input type="file" id="inputExcel" accept=".xlsx,.xls,.csv" class="oculto">
+                        <button class="btn btn-primary" id="btnActualizarDatos"><i class="fa-solid fa-upload"></i> Actualizar datos (Excel)</button>
+                        <button class="btn btn-secondary" id="btnDescargarExcel"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button>
+                        <button class="btn btn-secondary" id="btnExportarCsv"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
+                        <button class="btn btn-secondary" id="btnPlantilla"><i class="fa-solid fa-download"></i> Plantilla</button>
+                        <button class="btn btn-secondary" id="btnExportar"><i class="fa-solid fa-file-export"></i> Exportar JSON</button>
+                        <button class="btn btn-primary" id="btnNuevoRepuesto"><i class="fa-solid fa-plus"></i> Nuevo repuesto</button>
+                        <button class="btn btn-secondary" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+                    </div>
+                </div>
+                <div class="admin-filters">
+                    <div class="admin-search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="adminBuscarRepuesto" placeholder="Buscar por código, nombre, categoría o marca...">
+                        <button type="button" class="admin-search-clear oculto" id="btnLimpiarBusquedaAdmin" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <select id="adminFiltroCategoria" class="admin-filter-select">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                    <select id="adminFiltroStock" class="admin-filter-select">
+                        <option value="">Todo el stock</option>
+                        <option value="disponible">Disponible (&gt;10)</option>
+                        <option value="bajo">Stock bajo (1-10)</option>
+                        <option value="agotado">Agotado (0)</option>
+                    </select>
+                    <select id="adminOrdenRepuestos" class="admin-filter-select">
+                        <option value="">Ordenar por defecto</option>
+                        <option value="codigo_asc">Código A - Z</option>
+                        <option value="nombre_asc">Nombre A - Z</option>
+                        <option value="precio_asc">Precio: menor a mayor</option>
+                        <option value="precio_desc">Precio: mayor a menor</option>
+                        <option value="stock_asc">Stock: menor a mayor</option>
+                        <option value="stock_desc">Stock: mayor a menor</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btnLimpiarFiltrosAdmin"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                    <span class="admin-filters-count" id="adminContadorRepuestos">—</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Código</th><th>Repuesto</th><th>Categoría</th><th>Marca</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaAdminBody"></tbody>
+                    </table>
+                </div>
+                <div class="admin-paginacion oculto" id="adminPaginacion">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnAdminAnterior"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                    <span id="adminPaginaInfo">Página 1 de 1</span>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnAdminSiguiente">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+            </div>
+
+            <div id="admin-panel-asesores" class="oculto">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Asesores de WhatsApp</h2>
+                        <div class="table-actions">
+                            <button class="btn btn-primary" id="btnNuevoAsesor"><i class="fa-solid fa-plus"></i> Nuevo asesor</button>
+                            <button class="btn btn-secondary" id="btnLogout2"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+                        </div>
+                    </div>
+                    <p class="form-hint" style="padding:0 1.1rem">Estos asesores aparecen en el botón de WhatsApp del catálogo. Usa el formato internacional del número (ej: 573001112233).</p>
+                    <div class="admin-filters">
+                        <div class="admin-search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="adminBuscarAsesor" placeholder="Buscar por nombre, cargo, teléfono o correo...">
+                            <button type="button" class="admin-search-clear oculto" id="btnLimpiarBusquedaAdminAsesor" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <select id="adminFiltroEstadoAsesor" class="admin-filter-select">
+                            <option value="">Todos los estados</option>
+                            <option value="activos">Solo activos</option>
+                            <option value="inactivos">Solo inactivos</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btnLimpiarFiltrosAsesores"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                        <span class="admin-filters-count" id="adminContadorAsesores">—</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Nombre</th><th>Cargo</th><th>Teléfono</th><th>Correo</th><th>Activo</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaAsesoresBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-panel-categorias" class="oculto">
+                <div class="card table-card">
+                    <div class="table-header">
+                        <h2>Gestión de categorías</h2>
+                        <div class="table-actions">
+                            <button class="btn btn-primary" id="btnNuevaCategoria"><i class="fa-solid fa-plus"></i> Nueva categoría</button>
+                            <button class="btn btn-secondary" id="btnLogout3"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+                        </div>
+                    </div>
+                    <p class="form-hint" style="padding:0 1.1rem">Estas categorías se asignan a los repuestos y aparecen en los filtros del catálogo.</p>
+                    <div class="admin-filters">
+                        <div class="admin-search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="adminBuscarCategoria" placeholder="Buscar categoría...">
+                            <button type="button" class="admin-search-clear oculto" id="btnLimpiarBusquedaAdminCategoria" title="Limpiar búsqueda"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <span class="admin-filters-count" id="adminContadorCategorias">—</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Categoría</th><th>Descripción</th><th>Repuestos</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody id="tablaCategoriasBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div>
+            <img src="/img/logo.jpg" alt="TODO REPUESTOS Y FRENOS LA 61" class="footer-logo">
+            <span>Repuestos para vehículos livianos · Calidad y confianza</span>
+        </div>
+        <div class="footer-contact">
+            <span><i class="fa-solid fa-location-dot"></i> Calle 61 17E O2, esquina · Barrio La Ceiba, Bucaramanga</span>
+            <span><i class="fa-solid fa-phone"></i> +57 315 6772672</span>
+            <span><i class="fa-solid fa-clock"></i> Lun - Sáb 8:00am - 6:00pm</span>
+        </div>
+    </footer>
+
+    <!-- ===================== MODAL DETALLE ===================== -->
+    <div class="modal-overlay" id="modalDetalle">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="detalleTitulo">Detalle del repuesto</h3>
+                <button class="btn-close" data-cerrar="modalDetalle">&times;</button>
+            </div>
+            <div class="modal-body" id="detalleBody"></div>
+        </div>
+    </div>
+
+    <!-- ===================== VISOR DE IMAGEN ===================== -->
+    <div class="visor-overlay" id="visorImagen" aria-hidden="true">
+        <div class="visor-topbar">
+            <h4 id="visorTitulo">Vista ampliada</h4>
+            <div class="visor-acciones">
+                <button type="button" class="visor-btn" id="visorZoomOut" aria-label="Alejar" title="Alejar"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button type="button" class="visor-btn visor-nivel" id="visorZoomNivel" title="Restablecer zoom">100%</button>
+                <button type="button" class="visor-btn" id="visorZoomIn" aria-label="Acercar" title="Acercar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button type="button" class="visor-btn" id="visorCerrar" aria-label="Cerrar" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="visor-stage" id="visorStage">
+            <img id="visorImg" src="" alt="" draggable="false">
+        </div>
+        <p class="visor-hint"><i class="fa-solid fa-magnifying-glass"></i> Usa la rueda del mouse o los botones para hacer zoom · Arrastra la imagen para moverla</p>
+    </div>
+
+    <!-- ===================== MODAL ADMIN ===================== -->
+    <div class="modal-overlay" id="modalRepuesto">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalDinamicoTitulo">Título</h3>
-                <button class="btn-close" id="btnCerrarModalDinamico">&times;</button>
+                <h3 id="modalRepuestoTitulo">Nuevo repuesto</h3>
+                <button class="btn-close" data-cerrar="modalRepuesto">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formDinamico">
-                    <div id="modalDinamicoCampos"></div>
-                    <input type="hidden" id="modalDinamicoRecurso">
-                    <input type="hidden" id="modalDinamicoId">
+                <form id="formRepuesto">
+                    <input type="hidden" id="repuestoId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Código</label>
+                            <input type="text" id="repCodigo" placeholder="FR-1001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Marca del repuesto</label>
+                            <select id="repMarca" required></select>
+                            <div class="marca-nueva">
+                                <span class="marca-nueva-sep">o crear nueva</span>
+                                <input type="text" id="repMarcaNueva" placeholder="Escribe el nombre de la nueva marca...">
+                                <small class="form-hint">Si escribes una marca nueva, se creará automáticamente y quedará disponible para los demás productos.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del repuesto</label>
+                        <input type="text" id="repNombre" placeholder="Pastillas de freno delanteras" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="repCategoria" required></select>
+                            <div id="repCategoriaNuevaWrap" class="oculto" style="margin-top:0.55rem">
+                                <input type="text" id="repCategoriaNueva" placeholder="Nombre de la nueva categoría" maxlength="60">
+                                <small class="form-hint">La categoría se creará y quedará asignada al repuesto al guardar.</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio (COP)</label>
+                            <input type="number" id="repPrecio" min="0" step="1000" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="repStock" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="repDescripcion" rows="2" placeholder="Descripción breve del repuesto"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Imagen del repuesto</label>
+                        <div class="imagen-input">
+                            <div class="imagen-preview" id="repImagenPreview"><i class="fa-solid fa-image"></i></div>
+                            <div class="imagen-input-col">
+                                <input type="text" id="repImagen" placeholder="/img/frenos.jpg o https://...">
+                                <small class="form-hint">Ruta relativa (ej: /img/filtros.jpg) o URL completa. Déjalo vacío para usar la imagen por defecto de la categoría.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Compatibilidad (marca / modelo / cilindraje / año)</label>
+                        <p class="form-hint" style="margin-top:0;margin-bottom:0.55rem">Agrega todas las combinaciones marca / modelo a las que aplica este repuesto. Puedes crear marcas y modelos nuevos.</p>
+                        <div id="compatLista" class="compat-lista"></div>
+                        <button type="button" class="btn btn-secondary btn-block" id="btnAgregarCompat"><i class="fa-solid fa-plus"></i> Agregar marca / modelo</button>
+                        <small class="form-hint" id="repModelosInfo"></small>
+                    </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="btnCancelarModalDinamico">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" id="btnGuardarModalDinamico">Guardar</button>
+                        <button type="button" class="btn btn-secondary" data-cerrar="modalRepuesto">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- ===================== CARRITO ===================== -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <aside class="drawer" id="drawerCarrito">
+        <div class="drawer-head">
+            <h3><i class="fa-solid fa-cart-shopping"></i> Tu pedido</h3>
+            <button class="btn-close" id="btnCerrarCarrito">&times;</button>
+        </div>
+        <div class="drawer-body" id="carritoBody"></div>
+        <div class="drawer-foot">
+            <div class="drawer-total"><span>Total</span><strong id="carritoTotal">$0</strong></div>
+            <button class="btn btn-primary btn-block" id="btnFinalizarCompra"><i class="fa-brands fa-whatsapp"></i> Finalizar pedido</button>
+            <div class="finalizar-asesor">
+                <div class="finalizar-asesor-fila">
+                    <button class="btn btn-secondary" id="btnFinalizarConAsesor"><i class="fa-brands fa-whatsapp"></i> Finalizar pedido con un asesor</button>
+                    <button class="btn btn-secondary btn-asesor-toggle" id="btnToggleAsesores" aria-label="Elegir asesor" aria-expanded="false" title="Elegir asesor"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="asesor-dropdown oculto" id="asesorDropdown"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===================== MODAL ASESOR (ADMIN) ===================== -->
+    <div class="modal-overlay" id="modalAsesor">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="modalAsesorTitulo"><i class="fa-brands fa-whatsapp"></i> Nuevo asesor</h3>
+                <button class="btn-close" data-cerrar="modalAsesor">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formAsesor">
+                    <input type="hidden" id="asesorId">
+                    <div class="form-group">
+                        <label>Nombre completo</label>
+                        <input type="text" id="asNombre" placeholder="Ej: Carlos Ramírez" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cargo o área</label>
+                        <input type="text" id="asCargo" placeholder="Ej: Asesor de frenos">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono (formato internacional)</label>
+                        <input type="text" id="asTelefono" placeholder="Ej: 573001112233" required>
+                        <small class="form-hint">Sin espacios ni símbolos. Incluye el indicativo del país (57 para Colombia).</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo</label>
+                        <input type="email" id="asCorreo" placeholder="Ej: carlos@repuestosla61.com">
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="asActivo" checked>
+                        <span class="slider"></span>
+                        Mostrar en el botón de WhatsApp
+                    </label>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-cerrar="modalAsesor">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL CATEGORÍA (ADMIN) ===================== -->
+    <div class="modal-overlay" id="modalCategoria">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="modalCategoriaTitulo"><i class="fa-solid fa-tags"></i> Nueva categoría</h3>
+                <button class="btn-close" data-cerrar="modalCategoria">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formCategoria">
+                    <input type="hidden" id="categoriaId">
+                    <div class="form-group">
+                        <label>Nombre de la categoría</label>
+                        <input type="text" id="catNombre" placeholder="Ej: Accesorios" maxlength="60" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="catDescripcion" rows="3" placeholder="Descripción breve de la categoría" maxlength="150"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-cerrar="modalCategoria">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== LOGIN ADMIN ===================== -->
+    <div class="modal-overlay" id="modalLogin">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-lock"></i> Acceso administrador</h3>
+                <button class="btn-close" data-cerrar="modalLogin">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="login-logo">
+                    <img src="/img/logo.jpg" alt="TODO REPUESTOS Y FRENOS LA 61">
+                </div>
+                <form id="formLogin">
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <div class="input-pass">
+                            <input type="password" id="loginPassword" placeholder="Contraseña de administrador" required autocomplete="current-password">
+                            <button type="button" class="btn-ver-pass" id="btnVerPass" title="Mostrar/ocultar contraseña" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                        <p class="form-hint">Se configura en el archivo <code>.env</code> (ADMIN_PASSWORD).</p>
+                    </div>
+                    <p id="loginError" class="login-error oculto"></p>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" data-cerrar="modalLogin">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== RESULTADO IMPORTACION EXCEL ===================== -->
+    <div class="modal-overlay" id="modalImport">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-arrow-up"></i> Actualización de datos</h3>
+                <button class="btn-close" data-cerrar="modalImport">&times;</button>
+            </div>
+            <div class="modal-body" id="importResumen"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
 
     <script type="module" src="/main.js"></script>
 </body>
