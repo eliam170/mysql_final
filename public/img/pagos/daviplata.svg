@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" role="img" aria-label="Daviplata">
+  <rect width="120" height="40" rx="6" fill="#d71920"/>
+  <circle cx="26" cy="20" r="9" fill="#ffffff"/>
+  <path d="M23 15h5a5 5 0 0 1 0 10h-5z" fill="#d71920"/>
+  <text x="76" y="26" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#ffffff">Daviplata</text>
+</svg>
