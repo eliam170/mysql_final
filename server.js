@@ -1082,20 +1082,101 @@ function aNumero(v) {
 
 const ALIAS = {
   codigo: ['codigo', 'cod', 'sku', 'referencia', 'ref', 'codigorepuesto', 'codrepuesto'],
+  nombre: ['nombre', 'producto', 'repuesto', 'descripcion', 'detalle'],
+  categoria: ['categoria', 'categoriarepuesto', 'categoriaderepuesto', 'tipo', 'tiporepuesto', 'rubro', 'linea', 'familia'],
+  marca: ['marca', 'marcarepuesto', 'marcaderepuesto', 'fabricante', 'marcafabricante'],
   precio: ['precio', 'valor', 'pvp', 'precioventa', 'precioventaunitario', 'preciounitario'],
   stock: ['stock', 'cantidad', 'existencia', 'existencias', 'inventario', 'unidades', 'saldo'],
-  nombre: ['nombre', 'descripcion', 'producto', 'detalle'],
+  descripcion: ['descripcion', 'descripcionproducto', 'descripciondelproducto', 'detalle', 'observaciones', 'notas'],
 };
+
+const LIMITES_IMPORT = { codigo: 30, nombre: 120, categoria: 60, marca: 60, descripcion: 255 };
+
+const limpiarTexto = (valor) => String(valor ?? '').trim().replace(/\s+/g, ' ');
+const claveNombre = (valor) => sinAcentos(limpiarTexto(valor));
+const claveCodigo = (valor) => limpiarTexto(valor).toLowerCase();
+
+function mapearColumnas(encabezados) {
+  const mapa = {};
+  for (const [campo, alias] of Object.entries(ALIAS)) {
+    for (const nombreAlias of alias) {
+      const encontrado = encabezados.find((h) => sinAcentos(h) === nombreAlias);
+      if (encontrado) { mapa[campo] = encontrado; break; }
+    }
+  }
+  return mapa;
+}
+
+const excedeLimite = (valor, limite) => valor.length > limite;
+
+async function obtenerOCrearCategoria(conn, cache, nombre) {
+  const clave = claveNombre(nombre);
+  if (cache.has(clave)) return { ...cache.get(clave), creada: false };
+  try {
+    const [result] = await conn.execute('INSERT INTO categorias_repuesto (nombre) VALUES (?)', [nombre]);
+    const categoria = { id_categoria: result.insertId, nombre };
+    cache.set(clave, categoria);
+    return { ...categoria, creada: true };
+  } catch (err) {
+    if (err.code !== 'ER_DUP_ENTRY') throw err;
+    const [rows] = await conn.query(
+      'SELECT id_categoria, nombre FROM categorias_repuesto WHERE LOWER(nombre) = LOWER(?) LIMIT 1',
+      [nombre]
+    );
+    if (!rows.length) throw err;
+    cache.set(clave, rows[0]);
+    return { ...rows[0], creada: false };
+  }
+}
+
+async function obtenerOCrearMarca(conn, cache, nombre) {
+  const clave = claveNombre(nombre);
+  if (cache.has(clave)) return { ...cache.get(clave), creada: false };
+  try {
+    const [result] = await conn.execute(
+      'INSERT INTO marcas_repuesto (nombre, pais_origen) VALUES (?, ?)',
+      [nombre, 'Sin especificar']
+    );
+    const marca = { id_marca_repuesto: result.insertId, nombre, pais_origen: 'Sin especificar' };
+    cache.set(clave, marca);
+    return { ...marca, creada: true };
+  } catch (err) {
+    if (err.code !== 'ER_DUP_ENTRY') throw err;
+    const [rows] = await conn.query(
+      'SELECT id_marca_repuesto, nombre, pais_origen FROM marcas_repuesto WHERE LOWER(nombre) = LOWER(?) LIMIT 1',
+      [nombre]
+    );
+    if (!rows.length) throw err;
+    cache.set(clave, rows[0]);
+    return { ...rows[0], creada: false };
+  }
+}
 
 // Descarga la plantilla que se debe llenar
 app.get('/api/import/plantilla', (req, res) => {
   const ejemplo = [
-    { codigo: 'EJEMPLO-001', nombre: 'Pastillas de freno delanteras', precio: 45000, stock: 12 },
+    { codigo: 'EJEMPLO-001', nombre: 'Pastillas de freno delanteras', categoria: 'Frenos', marca: 'Bosch', precio: 45000, stock: 12, descripcion: 'Juego de 4 pastillas' },
+    { codigo: 'EJEMPLO-002', nombre: 'Filtro de aceite', categoria: 'Filtros', marca: 'Mann Filter', precio: 28000, stock: 20, descripcion: '' },
+    { codigo: 'EJEMPLO-003', nombre: 'Amortiguador delantero', categoria: 'Suspension', marca: 'Monroe', precio: 235000, stock: 8, descripcion: 'Por unidad' },
   ];
   const ws = XLSX.utils.json_to_sheet(ejemplo);
-  ws['!cols'] = [{ wch: 16 }, { wch: 34 }, { wch: 12 }, { wch: 10 }];
+  ws['!cols'] = [{ wch: 16 }, { wch: 34 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 10 }, { wch: 40 }];
+
+  const instrucciones = XLSX.utils.aoa_to_sheet([
+    ['TODO REPUESTOS Y FRENOS LA 61 - Plantilla de inventario'],
+    ['Uso', 'Llena la hoja Inventario. Puedes agregar todas las filas que necesites.'],
+    ['Columnas obligatorias', 'codigo, nombre, categoria, marca, precio'],
+    ['Columnas opcionales', 'stock (por defecto 0), descripcion'],
+    ['Nuevas categorias', 'Si la categoria no existe, se crea automaticamente al cargar el archivo.'],
+    ['Nuevas marcas', 'Si la marca no existe, se crea automaticamente al cargar el archivo.'],
+    ['Codigos existentes', 'Se actualizan nombre, categoria, marca, precio, stock y descripcion.'],
+    ['Imagen y compatibilidad', 'Se configuran despues en la pagina, editando el repuesto (imagen, marca/modelo/anio).'],
+  ]);
+  instrucciones['!cols'] = [{ wch: 28 }, { wch: 100 }];
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+  XLSX.utils.book_append_sheet(wb, instrucciones, 'Instrucciones');
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', 'attachment; filename="plantilla_inventario.xlsx"');
@@ -1106,14 +1187,23 @@ app.get('/api/import/plantilla', (req, res) => {
 app.get('/api/export/excel', requireAuth, async (req, res) => {
   try {
     const [filas] = await ejecutar(`
-      SELECT r.codigo, r.nombre, c.nombre AS categoria, mr.nombre AS marca, r.precio, r.stock
+      SELECT r.codigo, r.nombre, c.nombre AS categoria, mr.nombre AS marca,
+             r.precio, r.stock, r.descripcion
       FROM repuestos r
       JOIN categorias_repuesto c ON r.id_categoria = c.id_categoria
       JOIN marcas_repuesto mr ON r.id_marca_repuesto = mr.id_marca_repuesto
       ORDER BY r.nombre
     `);
-    const ws = XLSX.utils.json_to_sheet(filas.map((f) => ({ codigo: f.codigo, nombre: f.nombre, categoria: f.categoria, marca: f.marca, precio: Number(f.precio), stock: f.stock })));
-    ws['!cols'] = [{ wch: 16 }, { wch: 34 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
+    const ws = XLSX.utils.json_to_sheet(filas.map((f) => ({
+      codigo: f.codigo,
+      nombre: f.nombre,
+      categoria: f.categoria,
+      marca: f.marca,
+      precio: Number(f.precio),
+      stock: f.stock,
+      descripcion: f.descripcion || '',
+    })));
+    ws['!cols'] = [{ wch: 16 }, { wch: 34 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 10 }, { wch: 40 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
@@ -1125,7 +1215,7 @@ app.get('/api/export/excel', requireAuth, async (req, res) => {
   }
 });
 
-// Sube un Excel y actualiza precio/stock por código
+// Sube un Excel/CSV para crear y actualizar productos, marcas y categorías
 app.post('/api/import/excel', requireAuth, upload.single('archivo'), async (req, res) => {
   let conn;
   try {
@@ -1139,110 +1229,166 @@ app.post('/api/import/excel', requireAuth, upload.single('archivo'), async (req,
     const filas = XLSX.utils.sheet_to_json(hoja, { defval: '', raw: true });
     if (!filas.length) return res.status(400).json({ error: 'El archivo no tiene filas de datos. ¿Usaste la plantilla?' });
 
-    // Mapea los encabezados reales a los campos esperados
     const encabezados = Object.keys(filas[0]);
-    const mapa = {};
-    for (const campo of Object.keys(ALIAS)) {
-      const encontrado = encabezados.find((h) => ALIAS[campo].includes(sinAcentos(h)));
-      if (encontrado) mapa[campo] = encontrado;
-    }
-    if (!mapa.codigo) {
-      return res.status(400).json({ error: `Falta la columna de código. Columnas detectadas: ${encabezados.join(', ')}` });
-    }
-    if (!mapa.precio && !mapa.stock) {
-      return res.status(400).json({ error: 'El archivo debe tener al menos una columna de precio o de stock.' });
+    const mapa = mapearColumnas(encabezados);
+    const faltantes = ['codigo', 'nombre', 'categoria', 'marca', 'precio'].filter((campo) => !mapa[campo]);
+    if (faltantes.length) {
+      return res.status(400).json({
+        error: `Faltan columnas obligatorias: ${faltantes.join(', ')}. Columnas detectadas: ${encabezados.join(', ')}. Descarga la plantilla actualizada.`,
+      });
     }
 
-    const resumen = { filas: filas.length, actualizados: 0, sinCambios: 0, noEncontrados: 0, errores: 0 };
-    const noEncontrados = [];
+    const resumen = {
+      filas: filas.length,
+      productosCreados: 0,
+      productosActualizados: 0,
+      sinCambios: 0,
+      categoriasCreadas: 0,
+      marcasCreadas: 0,
+      errores: 0,
+    };
     const errores = [];
     const validas = [];
+    const codigosArchivo = new Set();
 
     for (let i = 0; i < filas.length; i++) {
       const fila = filas[i];
-      const codigo = String(fila[mapa.codigo] ?? '').trim();
-      if (!codigo) { resumen.errores++; errores.push(`Fila ${i + 2}: sin código`); continue; }
+      const numero = i + 2;
+      const codigo = limpiarTexto(fila[mapa.codigo]);
+      if (!codigo) { resumen.errores += 1; errores.push(`Fila ${numero}: sin código`); continue; }
 
-      let precio = null;
-      let stock = null;
-      if (mapa.precio) precio = aNumero(fila[mapa.precio]);
-      if (mapa.stock) {
-        const s = aNumero(fila[mapa.stock]);
-        stock = s === null ? null : Math.trunc(s);
-      }
-      if (precio === null && stock === null) {
-        resumen.errores++;
-        errores.push(`Fila ${i + 2} (${codigo}): precio/stock vacíos`);
+      const nombre = limpiarTexto(fila[mapa.nombre]);
+      const categoria = limpiarTexto(fila[mapa.categoria]);
+      const marca = limpiarTexto(fila[mapa.marca]);
+      const descripcion = mapa.descripcion ? limpiarTexto(fila[mapa.descripcion]) : '';
+      const precio = aNumero(fila[mapa.precio]);
+
+      if (!nombre) { resumen.errores += 1; errores.push(`Fila ${numero} (${codigo}): sin nombre`); continue; }
+      if (!categoria) { resumen.errores += 1; errores.push(`Fila ${numero} (${codigo}): sin categoría`); continue; }
+      if (!marca) { resumen.errores += 1; errores.push(`Fila ${numero} (${codigo}): sin marca`); continue; }
+      if (precio === null || precio < 0) { resumen.errores += 1; errores.push(`Fila ${numero} (${codigo}): precio inválido o vacío`); continue; }
+
+      const valores = { codigo, nombre, categoria, marca, descripcion };
+      const demasiadoLargo = Object.entries(valores).find(([campo, valor]) => excedeLimite(valor, LIMITES_IMPORT[campo]));
+      if (demasiadoLargo) {
+        resumen.errores += 1;
+        errores.push(`Fila ${numero} (${codigo}): ${demasiadoLargo[0]} supera ${LIMITES_IMPORT[demasiadoLargo[0]]} caracteres`);
         continue;
       }
-      validas.push([codigo, precio, stock]);
+
+      const clave = claveCodigo(codigo);
+      if (codigosArchivo.has(clave)) {
+        resumen.errores += 1;
+        errores.push(`Fila ${numero} (${codigo}): código repetido en el archivo`);
+        continue;
+      }
+
+      let stock = null;
+      if (mapa.stock && limpiarTexto(fila[mapa.stock]) !== '') {
+        const numeroStock = aNumero(fila[mapa.stock]);
+        if (numeroStock === null || numeroStock < 0) {
+          resumen.errores += 1;
+          errores.push(`Fila ${numero} (${codigo}): stock inválido`);
+          continue;
+        }
+        stock = Math.trunc(numeroStock);
+      }
+
+      codigosArchivo.add(clave);
+      validas.push({ codigo, nombre, categoria, marca, precio, stock, descripcion: descripcion || null });
+    }
+
+    if (!validas.length) {
+      return res.json({
+        exito: false,
+        mensaje: 'No se importó ningún producto. Revisa los errores del archivo.',
+        resumen,
+        errores: errores.slice(0, 50),
+      });
     }
 
     conn = await conexion();
     await conn.beginTransaction();
 
-    // Tabla temporal: carga masiva y luego un solo UPDATE con JOIN (evita 1 viaje por fila)
-    await conn.query(`CREATE TEMPORARY TABLE tmp_import (
-      codigo VARCHAR(30) NOT NULL PRIMARY KEY,
-      precio DECIMAL(10,2) NULL,
-      stock INT NULL
-    ) ENGINE=InnoDB`);
+    const [categorias] = await conn.query('SELECT id_categoria, nombre FROM categorias_repuesto');
+    const cacheCategorias = new Map(categorias.map((c) => [claveNombre(c.nombre), c]));
+    const [marcas] = await conn.query('SELECT id_marca_repuesto, nombre, pais_origen FROM marcas_repuesto');
+    const cacheMarcas = new Map(marcas.map((m) => [claveNombre(m.nombre), m]));
+    const [existentes] = await conn.query(
+      'SELECT id_repuesto, codigo, nombre, id_categoria, id_marca_repuesto, precio, stock, descripcion FROM repuestos'
+    );
+    const cacheRepuestos = new Map(existentes.map((r) => [claveCodigo(r.codigo), r]));
 
-    const LOTE = 1000;
-    for (let i = 0; i < validas.length; i += LOTE) {
-      const lote = validas.slice(i, i + LOTE);
-      const valores = lote.map(() => '(?, ?, ?)').join(', ');
+    for (const item of validas) {
+      const categoria = await obtenerOCrearCategoria(conn, cacheCategorias, item.categoria);
+      if (categoria.creada) resumen.categoriasCreadas += 1;
+      const marca = await obtenerOCrearMarca(conn, cacheMarcas, item.marca);
+      if (marca.creada) resumen.marcasCreadas += 1;
+
+      const clave = claveCodigo(item.codigo);
+      const existente = cacheRepuestos.get(clave);
+
+      if (!existente) {
+        const stockNuevo = item.stock ?? 0;
+        const [result] = await conn.execute(
+          'INSERT INTO repuestos (codigo, nombre, id_categoria, id_marca_repuesto, precio, stock, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [item.codigo, item.nombre, categoria.id_categoria, marca.id_marca_repuesto, item.precio, stockNuevo, item.descripcion]
+        );
+        cacheRepuestos.set(clave, {
+          id_repuesto: result.insertId,
+          codigo: item.codigo,
+          nombre: item.nombre,
+          id_categoria: categoria.id_categoria,
+          id_marca_repuesto: marca.id_marca_repuesto,
+          precio: item.precio,
+          stock: stockNuevo,
+          descripcion: item.descripcion,
+        });
+        resumen.productosCreados += 1;
+        continue;
+      }
+
+      const stockFinal = item.stock === null ? Number(existente.stock) : item.stock;
+      const descripcionFinal = item.descripcion === null ? existente.descripcion : item.descripcion;
+      const sinCambios =
+        limpiarTexto(existente.nombre) === item.nombre &&
+        Number(existente.id_categoria) === Number(categoria.id_categoria) &&
+        Number(existente.id_marca_repuesto) === Number(marca.id_marca_repuesto) &&
+        Number(existente.precio) === Number(item.precio) &&
+        Number(existente.stock) === Number(stockFinal) &&
+        limpiarTexto(existente.descripcion) === limpiarTexto(descripcionFinal);
+      if (sinCambios) {
+        resumen.sinCambios += 1;
+        continue;
+      }
+
       await conn.execute(
-        `INSERT INTO tmp_import (codigo, precio, stock) VALUES ${valores} AS nuevo
-         ON DUPLICATE KEY UPDATE
-           precio = COALESCE(nuevo.precio, tmp_import.precio),
-           stock  = COALESCE(nuevo.stock,  tmp_import.stock)`,
-        lote.flat(),
+        'UPDATE repuestos SET nombre = ?, id_categoria = ?, id_marca_repuesto = ?, precio = ?, stock = ?, descripcion = ? WHERE id_repuesto = ?',
+        [item.nombre, categoria.id_categoria, marca.id_marca_repuesto, item.precio, stockFinal, descripcionFinal, existente.id_repuesto]
       );
+      resumen.productosActualizados += 1;
+      existente.nombre = item.nombre;
+      existente.id_categoria = categoria.id_categoria;
+      existente.id_marca_repuesto = marca.id_marca_repuesto;
+      existente.precio = item.precio;
+      existente.stock = stockFinal;
+      existente.descripcion = descripcionFinal;
     }
 
-    const [[conteo]] = await conn.query(`
-      SELECT COUNT(*) AS encontrados,
-             COALESCE(SUM(
-               (t.precio IS NOT NULL AND t.precio <> r.precio)
-               OR (t.stock IS NOT NULL AND t.stock <> r.stock)
-             ), 0) AS actualizados
-      FROM tmp_import t
-      JOIN repuestos r ON r.codigo = t.codigo
-    `);
-    const encontrados = Number(conteo.encontrados) || 0;
-    resumen.actualizados = Number(conteo.actualizados) || 0;
-    resumen.sinCambios = encontrados - resumen.actualizados;
-    resumen.noEncontrados = validas.length - encontrados;
-
-    if (resumen.actualizados > 0) {
-      await conn.execute(`
-        UPDATE repuestos r
-        JOIN tmp_import t ON t.codigo = r.codigo
-        SET r.precio = IF(t.precio IS NULL, r.precio, t.precio),
-            r.stock  = IF(t.stock  IS NULL, r.stock,  t.stock)
-        WHERE (t.precio IS NOT NULL AND t.precio <> r.precio)
-           OR (t.stock  IS NOT NULL AND t.stock  <> r.stock)
-      `);
-    }
-
-    if (resumen.noEncontrados > 0) {
-      const [faltantes] = await conn.query(`
-        SELECT t.codigo FROM tmp_import t
-        LEFT JOIN repuestos r ON r.codigo = t.codigo
-        WHERE r.codigo IS NULL
-        LIMIT 50
-      `);
-      faltantes.forEach((f) => noEncontrados.push(f.codigo));
-    }
-
-    await conn.query('DROP TEMPORARY TABLE IF EXISTS tmp_import');
     await conn.commit();
+
+    const detalles = [];
+    if (resumen.productosCreados) detalles.push(`${resumen.productosCreados} producto(s) creado(s)`);
+    if (resumen.productosActualizados) detalles.push(`${resumen.productosActualizados} actualizado(s)`);
+    if (resumen.categoriasCreadas) detalles.push(`${resumen.categoriasCreadas} categoría(s) nueva(s)`);
+    if (resumen.marcasCreadas) detalles.push(`${resumen.marcasCreadas} marca(s) nueva(s)`);
+
     res.json({
       exito: true,
-      mensaje: `Inventario actualizado: ${resumen.actualizados} repuesto(s) actualizado(s).`,
+      mensaje: detalles.length
+        ? `Carga completada: ${detalles.join(', ')}.`
+        : 'La carga terminó sin cambios en los productos.',
       resumen,
-      noEncontrados: noEncontrados.slice(0, 50),
       errores: errores.slice(0, 50),
     });
   } catch (err) {

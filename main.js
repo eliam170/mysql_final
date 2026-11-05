@@ -1745,14 +1745,13 @@ function mostrarResumenImport(r) {
   let html = `<p class="form-hint">${escapeHtml(r.mensaje || 'Proceso terminado.')}</p>
     <div class="import-stats">
       ${stat('Filas leídas', res.filas || 0, 'var(--text)')}
-      ${stat('Actualizados', res.actualizados || 0, 'var(--success)')}
+      ${stat('Productos creados', res.productosCreados || 0, 'var(--success)')}
+      ${stat('Actualizados', res.productosActualizados || 0, 'var(--success)')}
       ${stat('Sin cambios', res.sinCambios || 0, 'var(--text-muted)')}
-      ${stat('No encontrados', res.noEncontrados || 0, 'var(--danger)')}
+      ${stat('Categorías nuevas', res.categoriasCreadas || 0, 'var(--success)')}
+      ${stat('Marcas nuevas', res.marcasCreadas || 0, 'var(--success)')}
       ${stat('Con error', res.errores || 0, 'var(--danger)')}
     </div>`;
-  if (r.noEncontrados && r.noEncontrados.length) {
-    html += `<p class="form-hint"><strong>No encontrados:</strong> ${r.noEncontrados.map(escapeHtml).join(', ')}</p>`;
-  }
   if (r.errores && r.errores.length) {
     html += `<p class="form-hint" style="color:var(--danger)"><strong>Errores:</strong> ${r.errores.map(escapeHtml).join(', ')}</p>`;
   }
@@ -1764,7 +1763,7 @@ async function alSeleccionarExcel(e) {
   const file = e.target.files && e.target.files[0];
   e.target.value = '';
   if (!file) return;
-  toast('Subiendo y actualizando inventario...');
+  toast('Subiendo y procesando el inventario...');
   try {
     const r = await importarExcel(file);
     mostrarResumenImport(r);
