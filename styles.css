@@ -1663,6 +1663,24 @@ a { color: inherit; text-decoration: none; }
 .footer-contact span { color: var(--text-muted); font-size: 0.82rem; }
 .footer-contact i { color: var(--yellow); margin-right: 0.3rem; }
 
+.footer-pagos {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem 0.55rem;
+  flex-wrap: wrap;
+  max-width: 340px;
+}
+
+.footer-pagos img {
+  height: 24px;
+  width: auto;
+  max-width: 76px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
 /* ===================== TOAST ===================== */
 .toast {
   position: fixed;
@@ -2053,6 +2071,7 @@ html::-webkit-scrollbar { width: 0; height: 0; }
   .compat-total { margin-left: auto; }
   .imagen-input { flex-direction: column; }
   .footer { flex-direction: column; text-align: center; }
+  .footer-pagos { justify-content: center; max-width: 100%; }
   .wa-widget { top: auto; bottom: 1rem; right: 1rem; }
   .wa-button span { display: none; }
   .wa-button { padding: 0.7rem; }
