@@ -1256,8 +1256,17 @@ app.post('/api/import/excel', requireAuth, upload.single('archivo'), async (req,
 /* ========== FRONTEND COMPILADO (produccion) ========== */
 const distDir = path.resolve(__dirname, 'dist');
 if (fs.existsSync(path.join(distDir, 'index.html'))) {
-  app.use(express.static(distDir, { maxAge: '1h', etag: true }));
-  app.get(/^\/(?!api(?:\/|$)).*/, (req, res) => res.sendFile(path.join(distDir, 'index.html')));
+  app.use(express.static(distDir, {
+    maxAge: '1h',
+    etag: true,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store');
+    },
+  }));
+  app.get(/^\/(?!api(?:\/|$)).*/, (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
 }
 
 /* ========== 404 ========== */
