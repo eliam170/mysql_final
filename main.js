@@ -5,6 +5,7 @@ const state = {
   filtros: { marca: '', modelo: '', cilindraje: '', anio: '', categoria: '', marca_repuesto: '', q: '', soloStock: false, orden: '' },
   catalogo: { page: 0, limit: 50, total: 0, hayMas: false, cargando: false },
   carrito: [],
+  repuestoDetalle: null,
   todosLosModelos: [],
   marcasVehiculo: [],
   asesores: [],
@@ -616,6 +617,7 @@ function activarFiltroCompat() {
 async function verDetalle(id) {
   try {
     const r = await getJSON(`${API}/repuestos/${id}`);
+    state.repuestoDetalle = r;
     document.getElementById('detalleTitulo').textContent = r.nombre;
 
     document.getElementById('detalleBody').innerHTML = `
@@ -639,9 +641,12 @@ async function verDetalle(id) {
       <div class="detalle-compat">
         ${compatibilidadHtml(r.modelos)}
       </div>
-      <div class="form-actions">
+      <div class="form-actions detalle-acciones">
         <button class="btn btn-primary btn-block" data-add="${r.id_repuesto}" ${r.stock <= 0 ? 'disabled' : ''}>
           <i class="fa-solid fa-cart-plus"></i> ${r.stock <= 0 ? 'Producto agotado' : 'Agregar al pedido'}
+        </button>
+        <button class="btn btn-whatsapp btn-block" data-contactar="${r.id_repuesto}">
+          <i class="fa-brands fa-whatsapp"></i> Contactar asesor
         </button>
       </div>`;
 
@@ -650,6 +655,20 @@ async function verDetalle(id) {
   } catch (e) {
     toast('No se pudo cargar el detalle');
   }
+}
+
+async function contactarAsesorProducto() {
+  const r = state.repuestoDetalle;
+  if (!r) return;
+
+  if (!state.asesores.length) await cargarAsesoresCatalogo();
+  const asesor = state.asesores[0];
+  const saludo = asesor ? `Hola ${asesor.nombre}` : 'Hola TODO REPUESTOS Y FRENOS LA 61';
+  const mensaje = `${saludo}, estoy viendo este repuesto y tengo una inquietud:\n\n${r.nombre}\nCódigo: ${r.codigo}\nPrecio: ${money(r.precio)}\n\n¿Me pueden asesorar?`;
+  const telefono = asesor ? asesor.telefono : '573156772672';
+
+  window.open(whatsappUrl(telefono, mensaje), '_blank');
+  toast(asesor ? `Abriendo WhatsApp con ${asesor.nombre}` : 'Abriendo WhatsApp');
 }
 
 /* ===================== CARRITO ===================== */
@@ -2090,6 +2109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ver) return verDetalle(ver.dataset.ver);
     const add = e.target.closest('[data-add]');
     if (add) { agregarAlCarrito(Number(add.dataset.add)); if (add.closest('.modal')) cerrarModal('modalDetalle'); return; }
+    const contactar = e.target.closest('[data-contactar]');
+    if (contactar) return contactarAsesorProducto();
     const ed = e.target.closest('[data-editar]');
     if (ed) return editarRepuesto(ed.dataset.editar);
     const del = e.target.closest('[data-eliminar]');
